@@ -21,7 +21,7 @@ df = pd.read_csv('dataset.csv')
 # Ensure price column is numeric
 df['price'] = df['price'].astype(str).str.replace(r'[^\d.]', '', regex=True)
 df['price'] = pd.to_numeric(df['price'], errors='coerce')
-
+df = df.dropna(subset=['price'])  
 def recommend(category, price, top_n=5):
     try:
         # Convert price to number
@@ -31,20 +31,15 @@ def recommend(category, price, top_n=5):
     
     # Make category case-insensitive
     category = str(category).lower()
-    
-    # Check if category exists
-    if category not in df['category'].str.lower().unique():
-        return f"Error: Category '{category}' not found. Available categories: {list(df['category'].unique())}"
-    
-    # Filter products in the category
     filtered = df[df['category'].str.lower() == category].copy()
-    
-    # Compute difference from target price
-    filtered['diff'] = abs(filtered['price']<= price)
+    if filtered.empty:
+        return f"No products found in category '{category}'."
+    filtered = filtered[filtered['price'] <= price]
+
     if filtered.empty:
         return "No product is available under the price in this category"
     # Sort by closest price
-    result = filtered.sort_values(by='diff',ascending=False)
+    result = filtered.sort_values(by='price',ascending=True)
     
     # If no products found
     if result.empty:
