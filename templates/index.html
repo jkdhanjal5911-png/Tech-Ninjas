@@ -3,124 +3,282 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Product Recommendation</title>
-
+<title>Smart AI Recommendation System</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<style>
+    .sub-navbar {
+        background-color: #f8f9fa;
+        padding: 20px 0;
+    }
+    .search-box {
+        border-radius: 30px;
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+    .card {
+        transition: transform 0.2s;
+        height: 100%;
+        cursor: pointer;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .price-filter {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .product-img {
+        width: 100%;
+        height: 180px;
+        object-fit: contain;
+        padding: 20px;
+        background: #f8f9fa;
+    }
+    .category-btn.active {
+        background-color: #0d6efd !important;
+        color: white !important;
+    }
+    .similarity-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #28a745;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: bold;
+    }
+    .loading {
+        text-align: center;
+        padding: 50px;
+    }
+    .recommend-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+</style>
 </head>
-
 <body>
-<!-- Navbar -->
+
 <nav class="navbar navbar-expand-lg shadow bg-dark">
   <div class="container">
-    <h3 class="fw-bold text-white m-0">
-      Smart Product Recommendation
-    </h3>
+    <h3 class="fw-bold text-white m-0">🤖 Smart AI Recommendation System</h3>
   </div>
 </nav>
 
-<div class="sub-navbar py-3 shadow-sm">
+<div class="sub-navbar shadow-sm">
   <div class="container">
-
     <div class="row justify-content-center mb-3">
       <div class="col-md-6">
-        <input type="text" id="search" class="form-control search-box text-center" placeholder="🔍 Search product...">
+        <input type="text" id="search" class="form-control search-box" placeholder="🔍 Search products...">
       </div>
     </div>
 
-    <div class="text-center">
-      <button class="btn btn-dark m-1" onclick="filterCategory('All')">All</button>
-      <button class="btn btn-outline-dark m-1" onclick="filterCategory('Electronics')">Electronics</button>
-      <button class="btn btn-outline-dark m-1" onclick="filterCategory('Clothing')">Clothing</button>
-      <button class="btn btn-outline-dark m-1" onclick="filterCategory('Footwear')">Footwear</button>
-      <button class="btn btn-outline-dark m-1" onclick="filterCategory('Furniture')">Furniture</button>
-      <button class="btn btn-outline-dark m-1" onclick="filterCategory('Home')">Home</button>
-      <button class="btn btn-outline-dark m-1" onclick="filterCategory('Sports')">Sports</button>
-      <button class="btn btn-outline-dark m-1" onclick="filterCategory('Books')">Books</button>
-      <button class="btn btn-outline-dark m-1" onclick="filterCategory('Beauty')">Beauty</button>
-      <button class="btn btn-outline-dark m-1" onclick="filterCategory('Accessories')">Accessories</button>
-      <button class="btn btn-outline-dark m-1" onclick="filterCategory('Appliances')">Appliances</button>
-      <button class="btn btn-outline-dark m-1" onclick="filterCategory('Stationery')">Stationery</button>
+    <!-- Price Filter Section -->
+    <div class="price-filter">
+      <div class="row justify-content-center align-items-end">
+        <div class="col-md-3">
+          <label class="form-label fw-bold">Min Price (₹)</label>
+          <input type="number" id="minPrice" class="form-control" placeholder="0" value="0">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">Max Price (₹)</label>
+          <input type="number" id="maxPrice" class="form-control" placeholder="100000" value="100000">
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-primary w-100" onclick="applyFilters()">Apply Filter</button>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-secondary w-100" onclick="resetFilters()">Reset</button>
+        </div>
+      </div>
     </div>
 
+    <!-- Category Buttons -->
+    <div class="text-center">
+      <button class="btn btn-dark m-1 category-btn active" onclick="filterCategory('All')">All</button>
+      <button class="btn btn-outline-dark m-1 category-btn" onclick="filterCategory('Electronics')">📱 Electronics</button>
+      <button class="btn btn-outline-dark m-1 category-btn" onclick="filterCategory('Clothing')">👕 Clothing</button>
+      <button class="btn btn-outline-dark m-1 category-btn" onclick="filterCategory('Footwear')">👟 Footwear</button>
+      <button class="btn btn-outline-dark m-1 category-btn" onclick="filterCategory('Furniture')">🛋️ Furniture</button>
+      <button class="btn btn-outline-dark m-1 category-btn" onclick="filterCategory('Books')">📚 Books</button>
+    </div>
   </div>
 </div>
 
 <div class="container mt-4">
-
-<div class="container mt-3">
-  <img 
-    src="https://images.unsplash.com/photo-1523275335684-37898b6baf30"
-    class="img-fluid rounded shadow"
-    style="width:100%; height:300px; object-fit:cover;"
-  >
+  <div id="recommendHeader"></div>
+  <div class="row" id="productList"></div>
 </div>
 
-<div class="row mt-3" id="productList"></div>
-
-</div>
-
- 
 <script>
-function displayProducts(list) {
+let currentCategory = "All";
+let currentSearch = "";
+let currentMinPrice = 0;
+let currentMaxPrice = 100000;
+let isRecommendationMode = false;
+
+function displayProducts(products) {
     let html = "";
-    list.forEach(p => {
-        html += `
-        <div class="col-md-3 mb-3">
-            <div class="card p-2 text-center shadow">
-                <img src="${p.image}" class="card-img-top" style="height:150px; object-fit:cover;">
-                <div class="card-body">
-                    <h6>${p.name}</h6>
-                    <p>${p.category}</p>
-                    <p>₹${p.price}</p>
-                    <p>⭐ ${p.rating}</p>
-                    <button class="btn btn-dark btn-sm" onclick="recommendProduct('${p.name}')">
-                        Recommend
-                    </button>
+    
+    if (products.error) {
+        html = `<div class="alert alert-danger">${products.error}</div>`;
+    } else if (!products || products.length === 0) {
+        html = `<div class="alert alert-info">No products found. Try adjusting your filters!</div>`;
+    } else {
+        products.forEach(product => {
+            const similarityScore = product.similarity_score ? 
+                `<div class="similarity-badge">🤖 ${(product.similarity_score * 100).toFixed(1)}% match</div>` : '';
+            
+            html += `
+            <div class="col-md-3 mb-4">
+                <div class="card position-relative">
+                    ${similarityScore}
+                    <img src="${product.image}" class="product-img" alt="${product.name}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1995/1995572.png'">
+                    <div class="card-body">
+                        <h6 class="fw-bold">${product.name}</h6>
+                        <p class="text-muted small mb-1">${product.category}</p>
+                        <p class="text-success fw-bold mb-2">₹${product.price.toLocaleString()}</p>
+                        <p class="mb-2">⭐ ${product.rating} / 5</p>
+                        <button class="btn btn-primary btn-sm w-100" onclick="getRecommendations('${product.name.replace(/'/g, "\\'")}')">
+                            🤖 Find Similar
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </div>`;
-    });
+            </div>`;
+        });
+    }
+    
     document.getElementById("productList").innerHTML = html;
 }
 
-// Fetch products from Python backend
-function fetchProducts(category="All", search="") {
+function showLoading() {
+    document.getElementById("productList").innerHTML = `
+        <div class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Loading products...</p>
+        </div>
+    `;
+}
+
+function fetchProducts() {
+    showLoading();
+    
     fetch("/get_products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category, search })
+        body: JSON.stringify({ 
+            category: currentCategory, 
+            search: currentSearch,
+            min_price: currentMinPrice,
+            max_price: currentMaxPrice
+        })
     })
     .then(res => res.json())
-    .then(data => displayProducts(data));
+    .then(data => {
+        isRecommendationMode = false;
+        document.getElementById("recommendHeader").innerHTML = "";
+        displayProducts(data);
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        displayProducts({ error: "Failed to load products" });
+    });
 }
 
-// recommendation
-function recommendProduct(productName) {
+function filterCategory(category) {
+    currentCategory = category;
+    currentSearch = document.getElementById("search").value;
+    
+    // Update active button style
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        if (btn.innerText.includes(category) || (category === 'All' && btn.innerText === 'All')) {
+            btn.classList.remove('btn-outline-dark');
+            btn.classList.add('btn-dark');
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('btn-dark');
+            btn.classList.remove('active');
+            btn.classList.add('btn-outline-dark');
+        }
+    });
+    
+    fetchProducts();
+}
+
+function applyFilters() {
+    currentMinPrice = parseInt(document.getElementById("minPrice").value) || 0;
+    currentMaxPrice = parseInt(document.getElementById("maxPrice").value) || 100000;
+    fetchProducts();
+}
+
+function resetFilters() {
+    document.getElementById("minPrice").value = 0;
+    document.getElementById("maxPrice").value = 100000;
+    document.getElementById("search").value = "";
+    currentSearch = "";
+    currentMinPrice = 0;
+    currentMaxPrice = 100000;
+    fetchProducts();
+}
+
+function getRecommendations(productName) {
+    showLoading();
+    
     fetch("/recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productName })
+        body: JSON.stringify({ productName: productName })
     })
     .then(res => res.json())
-    .then(data => displayProducts(data));
+    .then(data => {
+        if (data.error) {
+            displayProducts({ error: data.error });
+        } else {
+            isRecommendationMode = true;
+            document.getElementById("recommendHeader").innerHTML = `
+                <div class="recommend-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>🎯 AI Recommendations based on "${productName}"</strong>
+                        <small class="d-block">Similar products based on category, price, and ratings</small>
+                    </div>
+                    <button class="btn btn-light btn-sm" onclick="fetchProducts()">✖ Clear</button>
+                </div>
+            `;
+            displayProducts(data);
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        displayProducts({ error: "Failed to get recommendations" });
+    });
 }
 
-// category filter
-function filterCategory(cat) {
-    let search = document.getElementById("search").value;
-    fetchProducts(cat, search.toLowerCase());
-}
-
-// search
-document.getElementById("search").addEventListener("keyup", function(){
-    let val = this.value.toLowerCase();
-    let activeCategory = "All"; // You can add logic to track selected category
-    fetchProducts(activeCategory, val);
+// Debounced search
+let searchTimeout;
+document.getElementById("search").addEventListener("keyup", function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        currentSearch = this.value;
+        if (!isRecommendationMode) {
+            fetchProducts();
+        }
+    }, 500);
 });
 
-// Load all products initially
+// Initial load
 fetchProducts();
 </script>
+
 </body>
-</html> 
+</html>
