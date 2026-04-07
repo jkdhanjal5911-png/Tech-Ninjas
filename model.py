@@ -19,6 +19,7 @@ import pandas as pd
 df = pd.read_csv('dataset.csv')
 
 # Ensure price column is numeric
+df['price'] = df['price'].astype(str).str.replace(r'[^\d.]', '', regex=True)
 df['price'] = pd.to_numeric(df['price'], errors='coerce')
 
 def recommend(category, price, top_n=5):
@@ -39,10 +40,11 @@ def recommend(category, price, top_n=5):
     filtered = df[df['category'].str.lower() == category].copy()
     
     # Compute difference from target price
-    filtered['diff'] = abs(filtered['price'] - price)
-    
+    filtered['diff'] = abs(filtered['price']<= price)
+    if filtered.empty:
+        return "No product is available under the price in this category"
     # Sort by closest price
-    result = filtered.sort_values(by='diff').head(top_n)
+    result = filtered.sort_values(by='diff',ascending=False)
     
     # If no products found
     if result.empty:
