@@ -49,5 +49,6 @@ def recommend(category, price, top_n=5):
 
 #input 
 user_category=input("Select the category: ")
-user_price=input('Price: ')
+user_price=input('Price:') 
+
 print(recommend(user_category,user_price))
